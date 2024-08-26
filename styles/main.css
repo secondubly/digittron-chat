@@ -11,19 +11,28 @@
     list-style-type: none;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: flex-start;
     height: 100%;
     width: 100%;
+    overflow-y: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none; /* firefox */
 }
+#chat::-webkit-scrollbar {
+    display: none;
+}
+
 .message {
     font-family: "Inconsolata", monospace;
     color: #F8F0E3;
     font-size: .8em;
     display: flex;
-    padding: 0.75em;
+    padding: 0.5em 1em;
     gap: 1em;
     border-top: 1px solid rgba(200, 200, 200, 0.55);
     border-bottom: 1px solid rgba(200, 200, 200, 0.55);
+    align-items: center;
+    line-height: 0.8rem;
 }
 .message>p {
     margin: 0;
@@ -44,4 +53,12 @@
     background: rgba(224, 5, 185, 0.55);
     border-top: 1px solid rgba(224, 5, 185);
     border-bottom: 1px solid rgba(224, 5, 185);
+}
+
+.emote {
+    width: 2em;
+}
+
+strong {
+    align-self: flex-end;
 }

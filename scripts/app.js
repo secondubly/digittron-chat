@@ -9,7 +9,7 @@ const channelId = "89181064"
 const emoteData = { emotes: new Map(), regex: null }
 const chat = document.querySelector("#chat")
 
-client.on('message', (channel, tags, message, _) => {
+client.on('message', (_channel, tags, message, _) => {
     if (!message) {
         return
     }
@@ -20,7 +20,7 @@ client.on('message', (channel, tags, message, _) => {
     const text = document.createElement("p")
     
     author.innerText = tags["display-name"]
-    text.innerText = message
+    text.innerHTML = tags.emotes !== null ? parseEmotes(tags, message) : message
 
     newMessage.append(author)
     newMessage.append(text)
@@ -55,14 +55,26 @@ const parseAuthorType = (tags, message) => {
     return
 }
 const parseEmotes = (tags, text) => {
-    if (tags["emote-only"] === true) {
-        const emotes = [...tags.emotes]
-        console.log(emotes.flatMap())
+    const twitchEmoteUrl = "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/default/dark/3.0"
+    const emotes = Object.keys(tags.emotes).reduce((arrStart, id) => {
+        return arrStart.concat({
+            id,
+            url: twitchEmoteUrl.replace('{{id}}', id),
+            start: Number(tags.emotes[id][0].split("-")[0]),
+            end: Number(tags.emotes[id][0].split("-")[1])
+        })
+    }, [])
+
+    emotes.sort(descendingSort)
+
+    for (const emote of emotes) {
+        text = replaceEmotes(text, emote["start"], emote["end"], emote['url'])
     }
+
+    return text
 }
 
 async function getEmotes() {
-    debugger;
     const convert = (provider, code, url) => ({ provider, code, url });
 
     const twitch = {
@@ -105,6 +117,15 @@ async function getEmotes() {
     return { emotes, regex };
 }
 
+function descendingSort(e1, e2) {
+    if (e1.end > e2.end) {
+        return -1 // e2 goes before e1
+    } else if (e1.end < e2.end) {
+        return 1 // e1 goes before e2
+    }
+    return 0 // keep orignal order
+}
+
 function escapeForRegex(input) {
 	return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -112,6 +133,11 @@ function escapeForRegex(input) {
 async function getJson(url) {
 	const res = await fetch(url);
 	return res.json();
+}
+
+function replaceEmotes(message, start, end, url) {
+    const imgUrl = `<img class="emote" src="${url}" />`
+    return message.substring(0, start) + imgUrl + message.substring(end+1)
 }
 
 console.info('Loading emote data...')
